@@ -308,6 +308,7 @@ module ParallelTests
         loop do
           sleep interval
           print '.'
+          $stdout.flush
         end
       end
     end
