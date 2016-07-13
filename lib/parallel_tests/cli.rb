@@ -26,11 +26,13 @@ module ParallelTests
 
     def execute_in_parallel(items, num_processes, options)
       Tempfile.open 'parallel_tests-lock' do |lock|
+        puts 'creating progress indicator'
         progress_indicator = simulate_output_for_ci if options[:serialize_stdout]
 
         Parallel.map(items, :in_threads => num_processes) do |item|
           result = yield(item)
           if progress_indicator && progress_indicator.alive?
+            puts 'exiting progress indicator'
             progress_indicator.exit
             puts
           end
@@ -303,12 +305,19 @@ module ParallelTests
 
     # CI systems often fail when there is no output for a long time, so simulate some output
     def simulate_output_for_ci
+      puts 'simulate_output_for_ci'
+      parent_stdout = $stdout
       Thread.new do
+        puts 'started thread'
         $stdout.sync = true
         interval = ENV.fetch('PARALLEL_TEST_HEARTBEAT_INTERVAL', 60).to_f
+        puts 'starting loop'
         loop do
+          puts 'sleeping'
           sleep interval
-          print '.'
+          $stdout.print '.'
+          $stdout.flush
+          parent_stdout.puts 'HI THERE'
         end
       end
     end
