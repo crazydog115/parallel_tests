@@ -304,11 +304,11 @@ module ParallelTests
     # CI systems often fail when there is no output for a long time, so simulate some output
     def simulate_output_for_ci
       Thread.new do
+        $stdout.sync = true
         interval = ENV.fetch('PARALLEL_TEST_HEARTBEAT_INTERVAL', 60).to_f
         loop do
           sleep interval
           print '.'
-          $stdout.flush
         end
       end
     end
